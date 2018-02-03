@@ -1,0 +1,46 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="im.com.mylook.PhotosFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="photos" />
+        <ImageView
+            android:id="@+id/testContect"
+            android:layout_width="match_parent"
+            android:layout_height="200dp" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/photos_fab_file"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="72dp"
+            android:layout_marginEnd="@dimen/fab_margin"
+            android:src="@drawable/ic_note_add_white_24dp"
+            app:backgroundTint="@color/colorPrimary"
+            app:fabSize="mini" />
+        <!--margin 56 + 16-->
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/photos_fab_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="72dp"
+            android:layout_marginEnd="@dimen/fab_margin"
+            android:layout_toStartOf="@id/photos_fab_file"
+            android:src="@drawable/ic_camera_enhance_white_24dp"
+            app:backgroundTint="@color/colorPrimary"
+            app:fabSize="mini" />
+        <!--margin 56 + 16-->
+    </RelativeLayout>
+</FrameLayout>
