@@ -12,6 +12,7 @@
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
+    <string name="invalid">Invalid</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email
@@ -20,8 +21,17 @@
     <string name="register">Register</string>
     <string name="profile">Profile</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="based_on_users">Based on users:</string>
     <string name="average">Average</string>
+    <string name="name">Name</string>
+    <string name="age">Age</string>
+    <string name="sex">Sex</string>
+    <string name="save">Save</string>
+
+    <string-array name="sexArray">
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
+
+
 </resources>

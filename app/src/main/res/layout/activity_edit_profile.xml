@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="im.com.mylook.EditProfile">
+
+
+    <TextView
+        android:id="@+id/editProfile_textName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="@string/name"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+    <EditText
+        android:id="@+id/editProfile_etName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp" />
+
+    <View
+        android:id="@+id/editProfile_line1"
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:layout_below="@id/editProfile_textName"
+        android:background="@drawable/gradient_line" />
+
+    <TextView
+        android:id="@+id/editProfile_textAge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/editProfile_line1"
+        android:layout_margin="16dp"
+        android:text="@string/age"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+    <EditText
+        android:id="@+id/editProfile_etAge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/editProfile_line1"
+        android:layout_margin="16dp"
+        android:inputType="number"
+        android:maxLength="2" />
+
+    <View
+        android:id="@+id/editProfile_line2"
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:layout_below="@id/editProfile_textAge"
+        android:background="@drawable/gradient_line" />
+
+    <TextView
+        android:id="@+id/editProfile_textSex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/editProfile_line2"
+        android:layout_margin="16dp"
+        android:text="@string/sex"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+    <Spinner
+        android:id="@+id/editProfile_sexSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/editProfile_line2"
+        android:layout_margin="16dp"
+        android:entries="@array/sexArray"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large">
+
+    </Spinner>
+
+
+    <View
+        android:id="@+id/editProfile_line3"
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:layout_below="@id/editProfile_textSex"
+        android:background="@drawable/gradient_line" />
+
+    <Button
+        android:id="@+id/editProfile_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/editProfile_line3"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="16dp"
+        android:minWidth="200dp"
+        android:text="@string/save"
+        android:textColor="@color/colorWhite" />
+
+
+</RelativeLayout>

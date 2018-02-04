@@ -5,7 +5,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -15,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,10 +25,8 @@ import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -47,7 +45,9 @@ import com.squareup.picasso.Picasso;
 import java.io.ByteArrayOutputStream;
 import java.util.Calendar;
 
-import static android.app.Activity.RESULT_OK;
+import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
+import jp.wasabeef.recyclerview.adapters.ScaleInAnimationAdapter;
+import jp.wasabeef.recyclerview.animators.SlideInRightAnimator;
 
 
 /**
@@ -70,6 +70,10 @@ public class PhotosFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private FirebaseRecyclerAdapter<User, UserViewHolder> firebaseRecyclerAdapter;
+
+
+
+    private String sex;
 
     public PhotosFragment() {
         // Required empty public constructor
@@ -101,12 +105,66 @@ public class PhotosFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        if (performSexCheck()){
+            //if true go ahead else -> set up account
+        }
+
+
         setFloatingButtonsListeners();
 
 
         setRecyclerAdapter();
 
 
+        setRecyclerEventAndAnimations();
+
+
+    }
+
+    private boolean performSexCheck() {
+        return true;
+    }
+
+    private void setRecyclerEventAndAnimations() {
+
+        recyclerView.setItemAnimator(new SlideInRightAnimator());
+
+
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                Log.e("swiped", String.valueOf(viewHolder.getLayoutPosition()));
+                String imagepath = firebaseRecyclerAdapter.getItem(viewHolder.getLayoutPosition()).getPath();
+                mRef.child("Users").child(mAuth.getCurrentUser().getUid()).child(imagepath).removeValue();
+
+                Toast.makeText(getActivity().getApplicationContext(),"Photo removed",Toast.LENGTH_SHORT).show();
+            }
+        };
+
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+
+        recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getActivity().getApplicationContext(), recyclerView, new ClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+                Log.e("tag result", "single click "+ position);
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+                Log.e("tag result", "long click" + position);
+
+
+            }
+        }));
     }
 
     @Override
@@ -122,10 +180,10 @@ public class PhotosFragment extends Fragment {
             StorageReference filepath = mStorage.child("Photos").child(uri.getLastPathSegment());
 
 
-            Bitmap bmp = ImagePicker.getImageFromResult(getActivity().getApplicationContext(),resultCode,data);
+            Bitmap bmp = ImagePicker.getImageFromResult(getActivity().getApplicationContext(), resultCode, data);
 
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bmp.compress(Bitmap.CompressFormat.JPEG,50,byteArrayOutputStream);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
             byte[] dane = byteArrayOutputStream.toByteArray();
 
             UploadTask uploadTask = filepath.putBytes(dane);
@@ -146,9 +204,9 @@ public class PhotosFragment extends Fragment {
 
 
         String userUid = mAuth.getCurrentUser().getUid();
-        Log.e("user", userUid);
-        User user = new User(String.valueOf(downloadedUri), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "/" + calendar.get(Calendar.MONTH)+1), 5, 0);
-        mRef.child("Users").child(userUid).push().setValue(user);
+        Log.e("user uid", userUid + " " + downloadedUri.getLastPathSegment().substring(7));
+        User user = new User(String.valueOf(downloadedUri), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "/" + calendar.get(Calendar.MONTH) + 1),downloadedUri.getLastPathSegment().substring(7) , 5, 0);
+        mRef.child("Users").child(userUid).child(downloadedUri.getLastPathSegment().substring(7)).setValue(user);
 
 
     }
@@ -183,21 +241,27 @@ public class PhotosFragment extends Fragment {
             }
         };
 
-        recyclerView.setAdapter(firebaseRecyclerAdapter);
+
+        recyclerView.setAdapter(new ScaleInAnimationAdapter(firebaseRecyclerAdapter));
+//        recyclerView.setAdapter(firebaseRecyclerAdapter);
+
+
     }
 
     public static class User {
         private String image;
         private String date;
+        private String path;
         private int average;
-        private int ratings; //todo no rat and ave at start
+        private int ratings;//todo no rat and ave at start
 
         public User() {
         }
 
-        public User(String image, String date, int average, int ratings) {
+        public User(String image, String date, String path, int average, int ratings) {
             this.image = image;
             this.date = date;
+            this.path = path;
             this.average = average;
             this.ratings = ratings;
 
@@ -217,6 +281,14 @@ public class PhotosFragment extends Fragment {
 
         public void setDate(String date) {
             this.date = date;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
         }
 
         public int getAverage() {
@@ -354,7 +426,7 @@ public class PhotosFragment extends Fragment {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if (dy > 0 || dy < 0 && floatingActionButtonCamera.isShown()){
+                if (dy > 0 || dy < 0 && floatingActionButtonCamera.isShown()) {
                     floatingActionButtonCamera.hide();
                     floatingActionButtonFile.hide();
                 }
@@ -362,11 +434,11 @@ public class PhotosFragment extends Fragment {
 
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                if (newState == RecyclerView.SCROLL_STATE_IDLE){
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     floatingActionButtonCamera.show();
                     floatingActionButtonFile.show();
                 }
-                super.onScrollStateChanged(recyclerView,newState);
+                super.onScrollStateChanged(recyclerView, newState);
             }
         });
     }

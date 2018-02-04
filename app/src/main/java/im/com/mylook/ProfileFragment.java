@@ -40,6 +40,9 @@ public class ProfileFragment extends Fragment {
         Picasso
                 .with(getActivity().getApplicationContext())
                 .load(R.drawable.user_default)
+                .fit()
+                .centerCrop()
+                .transform(new CircleTransform())
                 .into(profile_image);
 
         return view;
