@@ -19,18 +19,13 @@ import butterknife.OnClick;
 
 public class EditProfile extends Activity {
 
-    @BindView(R.id.editProfile_etName)
-    EditText etName;
-
-    @BindView(R.id.editProfile_etAge)
-    EditText etAge;
-
-    @BindView(R.id.editProfile_sexSpinner)
-    Spinner sexSpinner;
 
 
-    @BindView(R.id.editProfile_save)
-    Button btnSave;
+    private EditText etName,etAge;
+    private Spinner sexSpinner;
+
+//    @BindView(R.id.editProfile_save)
+//    Button btnSave;
 
 
     @Override
@@ -38,13 +33,15 @@ public class EditProfile extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
-        ButterKnife.bind(this);
+
+        etName = findViewById(R.id.editProfile_etName);
+        etAge = findViewById(R.id.editProfile_etAge);
+        sexSpinner = findViewById(R.id.editProfile_sexSpinner);
 
 
     }
 
-    @OnClick(R.id.editProfile_save)
-    void saveInfo() {
+    public void editProfile_save(View view) {
         Log.e("etprofile", "saving");
 
         etName.setError(null);
@@ -58,7 +55,7 @@ public class EditProfile extends Activity {
         View focusView = null;
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(name)) {
+        if (TextUtils.isEmpty(name)) {
             etName.setError(getString(R.string.invalid));
             focusView = etName;
             cancel = true;
@@ -80,13 +77,17 @@ public class EditProfile extends Activity {
             String sex = (String) sexSpinner.getSelectedItem();
 
             FirebaseAuth mAuth = FirebaseAuth.getInstance();
-            DatabaseReference mRef = FirebaseDatabase.getInstance().getReference().child("Users").child(sex).child(mAuth.getCurrentUser().getUid());
+            DatabaseReference mRef = FirebaseDatabase.getInstance().getReference().child("Users").child(sex).child(mAuth.getCurrentUser().getUid()).child("UserInfo");
 
-//            mRef.setValue() //todo
+//string , firebase int
+            UserInfo userInfo = new UserInfo(name,Integer.parseInt(age),sex);
+            mRef.setValue(userInfo);
+
+            MainActivity.sex = sex;
+
+            finish();
 
 
         }
-
     }
-
 }

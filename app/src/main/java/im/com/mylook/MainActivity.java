@@ -30,6 +30,13 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseDatabase mDatabase;
 
 
+    boolean FDataExist = false;
+    boolean MDataExist = false;
+
+
+    static String sex;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,18 +61,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void dataExistCheck() {
-        DatabaseReference Fref = mDatabase.getReference().child("Users").child("Female");
+        DatabaseReference Fref = mDatabase.getReference().child("Users").child("Female").child(mAuth.getCurrentUser().getUid());
+        DatabaseReference Mref = mDatabase.getReference().child("Users").child("Male").child(mAuth.getCurrentUser().getUid());
+
 
 
         Fref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChild(mAuth.getCurrentUser().getUid())) {
-                    Log.e("asd", "not empty");
-                } else {
-                    Log.e("asd", "empty2133123");
+                if (dataSnapshot.hasChild("UserInfo")) {
+                    Log.e("asd", "f not empty");
+                    FDataExist = true;
+                    sex = "Female";
+//                    UserInfo.sex = "Female";
 
-                    startActivity(new Intent(MainActivity.this, EditProfile.class));
+                } else {
+                    Log.e("asd", "f empty");
                 }
             }
 
@@ -75,6 +86,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Mref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChild("UserInfo")) {
+                    Log.e("asd", "m not empty");
+                    MDataExist = true;
+                    sex= "Male";
+//                    UserInfo.sex = "Male";
+                } else {
+                    Log.e("asd", "m empty");
+                    runEditProfile();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+
+
+    }
+
+    private void runEditProfile(){
+        if (!MDataExist && !FDataExist){
+            startActivity(new Intent(MainActivity.this, EditProfile.class));
+        }
     }
 
 

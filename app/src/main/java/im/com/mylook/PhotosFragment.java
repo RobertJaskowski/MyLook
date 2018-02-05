@@ -73,7 +73,7 @@ public class PhotosFragment extends Fragment {
 
 
 
-    private String sex;
+
 
     public PhotosFragment() {
         // Required empty public constructor
@@ -206,14 +206,21 @@ public class PhotosFragment extends Fragment {
         String userUid = mAuth.getCurrentUser().getUid();
         Log.e("user uid", userUid + " " + downloadedUri.getLastPathSegment().substring(7));
         User user = new User(String.valueOf(downloadedUri), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "/" + calendar.get(Calendar.MONTH) + 1),downloadedUri.getLastPathSegment().substring(7) , 5, 0);
-        mRef.child("Users").child(userUid).child(downloadedUri.getLastPathSegment().substring(7)).setValue(user);
+//        mRef.child("Users").child(userUid).child(downloadedUri.getLastPathSegment().substring(7)).setValue(user);
+        mRef.child("Users").child(MainActivity.sex).child(userUid).child("Photos").child(downloadedUri.getLastPathSegment().substring(7)).setValue(user);
+
+
+        User usermatch = new User(String.valueOf(downloadedUri), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "/" + calendar.get(Calendar.MONTH) + 1),downloadedUri.getLastPathSegment().substring(7) , 5, 0);
+
+        mRef.child("Users").child(MainActivity.sex).child("MatchPhotos").child(downloadedUri.getLastPathSegment().substring(7)).setValue(usermatch);
 
 
     }
 
     private void setRecyclerAdapter() {
 
-        Query query = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getCurrentUser().getUid());
+//        Query query = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getCurrentUser().getUid());
+        Query query = FirebaseDatabase.getInstance().getReference().child("Users").child(MainActivity.sex).child(mAuth.getCurrentUser().getUid()).child("Photos");
 
         FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setQuery(query, User.class).build();
         Log.e("user", "adapter");
@@ -248,65 +255,7 @@ public class PhotosFragment extends Fragment {
 
     }
 
-    public static class User {
-        private String image;
-        private String date;
-        private String path;
-        private int average;
-        private int ratings;//todo no rat and ave at start
 
-        public User() {
-        }
-
-        public User(String image, String date, String path, int average, int ratings) {
-            this.image = image;
-            this.date = date;
-            this.path = path;
-            this.average = average;
-            this.ratings = ratings;
-
-        }
-
-        public String getImage() {
-            return image;
-        }
-
-        public void setImage(String image) {
-            this.image = image;
-        }
-
-        public String getDate() {
-            return date;
-        }
-
-        public void setDate(String date) {
-            this.date = date;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public void setPath(String path) {
-            this.path = path;
-        }
-
-        public int getAverage() {
-            return average;
-        }
-
-        public void setAverage(int average) {
-            this.average = average;
-        }
-
-        public int getRatings() {
-            return ratings;
-        }
-
-        public void setRatings(int ratings) {
-            this.ratings = ratings;
-        }
-    }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
 

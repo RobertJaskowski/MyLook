@@ -19,7 +19,8 @@
         android:id="@+id/editProfile_etName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
+        android:layout_alignParentEnd="true" android:gravity="end"
+        android:layout_toEndOf="@id/editProfile_textName"
         android:layout_margin="16dp" />
 
     <View
@@ -45,6 +46,8 @@
         android:layout_alignParentEnd="true"
         android:layout_below="@id/editProfile_line1"
         android:layout_margin="16dp"
+        android:gravity="end"
+        android:layout_toEndOf="@id/editProfile_textAge"
         android:inputType="number"
         android:maxLength="2" />
 
@@ -92,6 +95,8 @@
         android:layout_centerHorizontal="true"
         android:layout_margin="16dp"
         android:minWidth="200dp"
+        android:onClick="editProfile_save"
+        style="@style/myButtons"
         android:text="@string/save"
         android:textColor="@color/colorWhite" />
 
