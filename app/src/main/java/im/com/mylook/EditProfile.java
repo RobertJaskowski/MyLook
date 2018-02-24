@@ -83,7 +83,7 @@ public class EditProfile extends Activity {
             UserInfo userInfo = new UserInfo(name,Integer.parseInt(age),sex);
             mRef.setValue(userInfo);
 
-            MainActivity.sex = sex;
+
 
             finish();
 

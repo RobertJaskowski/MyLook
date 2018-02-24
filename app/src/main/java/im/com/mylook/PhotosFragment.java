@@ -45,7 +45,6 @@ import com.squareup.picasso.Picasso;
 import java.io.ByteArrayOutputStream;
 import java.util.Calendar;
 
-import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 import jp.wasabeef.recyclerview.adapters.ScaleInAnimationAdapter;
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator;
 
@@ -72,7 +71,7 @@ public class PhotosFragment extends Fragment {
     private FirebaseRecyclerAdapter<User, UserViewHolder> firebaseRecyclerAdapter;
 
 
-
+    private String sex;
 
 
     public PhotosFragment() {
@@ -105,25 +104,47 @@ public class PhotosFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        if (performSexCheck()){
-            //if true go ahead else -> set up account
+//        int licz = 0;
+//        while (!SexChecking.sexChecked) {
+//            while (licz <= 5){
+//                Log.e("sexPhotyos", "checking " + licz);
+//                licz++;
+//                try {
+//                    Thread.sleep(1000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+
+        while (!SexChecking.checkState()) {
+            Log.e("sexPhotyos", "checking " + SexChecking.getLicz());
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
 
-        setFloatingButtonsListeners();
+        Log.e("sexPhotyosnext", "go next " + SexChecking.FDataExist + " " + SexChecking.MDataExist);
 
 
-        setRecyclerAdapter();
+        if (!SexChecking.sexChecked) {
+
+        } else {
+            setFloatingButtonsListeners();
 
 
-        setRecyclerEventAndAnimations();
+            setRecyclerAdapter();
+
+
+            setRecyclerEventAndAnimations();
+        }
 
 
     }
 
-    private boolean performSexCheck() {
-        return true;
-    }
 
     private void setRecyclerEventAndAnimations() {
 
@@ -143,7 +164,7 @@ public class PhotosFragment extends Fragment {
                 String imagepath = firebaseRecyclerAdapter.getItem(viewHolder.getLayoutPosition()).getPath();
                 mRef.child("Users").child(mAuth.getCurrentUser().getUid()).child(imagepath).removeValue();
 
-                Toast.makeText(getActivity().getApplicationContext(),"Photo removed",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity().getApplicationContext(), "Photo removed", Toast.LENGTH_SHORT).show();
             }
         };
 
@@ -155,7 +176,7 @@ public class PhotosFragment extends Fragment {
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getActivity().getApplicationContext(), recyclerView, new ClickListener() {
             @Override
             public void onClick(View view, int position) {
-                Log.e("tag result", "single click "+ position);
+                Log.e("tag result", "single click " + position);
             }
 
             @Override
@@ -201,18 +222,24 @@ public class PhotosFragment extends Fragment {
         Uri downloadedUri = taskSnapshot.getDownloadUrl();
 
         Calendar calendar = Calendar.getInstance();
+//todo sex here
+
+
+//        SexChecking sexChecking = new SexChecking();
+//
+//        sex = sexChecking.getSex();
 
 
         String userUid = mAuth.getCurrentUser().getUid();
         Log.e("user uid", userUid + " " + downloadedUri.getLastPathSegment().substring(7));
-        User user = new User(String.valueOf(downloadedUri), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "/" + calendar.get(Calendar.MONTH) + 1),downloadedUri.getLastPathSegment().substring(7) , 5, 0);
+        User user = new User(String.valueOf(downloadedUri), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "/" + calendar.get(Calendar.MONTH) + 1), downloadedUri.getLastPathSegment().substring(7), 5, 0);
 //        mRef.child("Users").child(userUid).child(downloadedUri.getLastPathSegment().substring(7)).setValue(user);
-        mRef.child("Users").child(MainActivity.sex).child(userUid).child("Photos").child(downloadedUri.getLastPathSegment().substring(7)).setValue(user);
+        mRef.child("Users").child(SexChecking.sex).child(userUid).child("Photos").child(downloadedUri.getLastPathSegment().substring(7)).setValue(user);
 
 
-        User usermatch = new User(String.valueOf(downloadedUri), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "/" + calendar.get(Calendar.MONTH) + 1),downloadedUri.getLastPathSegment().substring(7) , 5, 0);
+        User usermatch = new User(String.valueOf(downloadedUri), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "/" + calendar.get(Calendar.MONTH) + 1), downloadedUri.getLastPathSegment().substring(7), 5, 0);
 
-        mRef.child("Users").child(MainActivity.sex).child("MatchPhotos").child(downloadedUri.getLastPathSegment().substring(7)).setValue(usermatch);
+        mRef.child("Users").child(SexChecking.sex).child("MatchPhotos").child(downloadedUri.getLastPathSegment().substring(7)).setValue(usermatch);
 
 
     }
@@ -220,7 +247,7 @@ public class PhotosFragment extends Fragment {
     private void setRecyclerAdapter() {
 
 //        Query query = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getCurrentUser().getUid());
-        Query query = FirebaseDatabase.getInstance().getReference().child("Users").child(MainActivity.sex).child(mAuth.getCurrentUser().getUid()).child("Photos");
+        Query query = FirebaseDatabase.getInstance().getReference().child("Users").child(SexChecking.sex).child(mAuth.getCurrentUser().getUid()).child("Photos");
 
         FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setQuery(query, User.class).build();
         Log.e("user", "adapter");
@@ -254,7 +281,6 @@ public class PhotosFragment extends Fragment {
 
 
     }
-
 
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {

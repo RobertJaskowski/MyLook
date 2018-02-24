@@ -1,9 +1,11 @@
 package im.com.mylook;
 
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,8 +45,16 @@ public class HomeFragment extends Fragment {
     private FirebaseDatabase mDatabase;
     private DatabaseReference mRef;
 
+    private DatabaseReference ratingsRef;
 
-    int matchCounter ;
+
+    int matchCounter;
+
+
+    private String sex;
+
+    boolean FDataExist = false;
+    boolean MDataExist = false;
 
 
     public HomeFragment() {
@@ -60,6 +70,7 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
 
         mDatabase = FirebaseDatabase.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
 
         ratingText = view.findViewById(R.id.home_ratingTextView);
@@ -68,8 +79,40 @@ public class HomeFragment extends Fragment {
 
         ratingSeekBar.setMax(10);
         setProgressDefault();
-//        getOppositeSex();
 
+
+//        dataExistCheck();
+
+        return view;
+    }
+
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+
+
+
+        Log.e("sexPhotyosnext", "go next " + SexChecking.FDataExist + " " + SexChecking.MDataExist);
+
+//        if (!SexChecking.MDataExist && !SexChecking.FDataExist) {
+//
+//            startActivity(new Intent(getActivity().getApplicationContext(), EditProfile.class));
+//
+//            Log.e("start", "editprofile");
+//        }
+
+
+        setRatingListener();
+
+
+        matchCounter = 0;
+
+
+        }
+
+    private void setRatingListener() {
         ratingSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -84,28 +127,38 @@ public class HomeFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 //todo option to send after stop touching
-            }
+
+                final int progress = seekBar.getProgress();
+
+
+                ratingsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        ratingsRef = mDatabase.getReference().child("Users").child("Male").child("MatchRatings").child(potentialMatches.get(matchCounter).getPath());
+                        UserRatings userRatings = (UserRatings) dataSnapshot.getValue();
+                        ArrayList<Integer> newList = userRatings.getRatings();
+                        newList.add(progress);
+                        userRatings.setRatings(newList);
+                        ratingsRef.setValue(userRatings);
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }//todo change from male to opposite
+
+
         });
-
-
-        matchCounter = 0;
-        getArrayOfMatches();
-
-
-
-
-        return view;
     }
 
-    private void getOppositeSex() {
-        if (MainActivity.sex.equals("Male")){
-            oppositeSex = "Female";
-        }else{
-            oppositeSex = "Male";
-        }
-    }
 
-    private void getArrayOfMatches(){
+    private void getArrayOfMatches() { //todo change from male to opposite
+
+        Log.e("pote", "getarrayofmatcher");
         Query query = mDatabase.getReference().child("Users").child("Male").child("MatchPhotos").limitToLast(5);
 
         potentialMatches = new ArrayList<>();
@@ -113,10 +166,10 @@ public class HomeFragment extends Fragment {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot dsp : dataSnapshot.getChildren()){
-                    Log.e("pote","addin");
+                for (DataSnapshot dsp : dataSnapshot.getChildren()) {
+                    Log.e("pote", "addin");
                     User user = dsp.getValue(User.class);
-                    Log.e("pote",user.getImage());
+                    Log.e("pote", user.getImage());
                     potentialMatches.add(user);
                 }
 
@@ -132,24 +185,97 @@ public class HomeFragment extends Fragment {
 
 
     private void displayImages() {
-        Log.e("pote"," displayiamges");
+        Log.e("pote", " displayiamges");
 
 //        ratingImage.setImageURI(Uri.parse(potentialMatches.get(matchCounter).getImage()));
 
-        if (matchCounter>=5)
+        if (matchCounter >= 5)
 
-        Picasso
-                .with(getActivity().getApplicationContext())
-                .load(Uri.parse(potentialMatches.get(matchCounter).getImage()))
-                .fit()//todo center crop if needed?
-                .transform(new RoundedCornersTransform())
-                .into(ratingImage);
+            Picasso
+                    .with(getActivity().getApplicationContext())
+                    .load(Uri.parse(potentialMatches.get(matchCounter).getImage()))
+                    .fit()//todo center crop if needed?
+                    .transform(new RoundedCornersTransform())
+                    .into(ratingImage);
 
         matchCounter++;
     }
 
+    boolean cont;
 
-    private void setProgressDefault(){
+    void runAfterCheck() {
+        getArrayOfMatches();
+    }
+
+    private boolean dataExistCheck() {
+
+        Log.e("pote", "dataexistcheck");
+
+        DatabaseReference Fref = mDatabase.getReference().child("Users").child("Female").child(mAuth.getCurrentUser().getUid());
+        DatabaseReference Mref = mDatabase.getReference().child("Users").child("Male").child(mAuth.getCurrentUser().getUid());
+
+
+        Fref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChild("UserInfo")) {
+                    Log.e("asd", "f not empty");
+                    FDataExist = true;
+                    sex = "Female";
+                    cont = true;
+//                    UserInfo.sex = "Female";
+
+                    runAfterCheck();
+
+
+                } else {
+                    Log.e("asd", "f empty");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        Mref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChild("UserInfo")) {
+                    Log.e("asd", "m not empty");
+                    MDataExist = true;
+                    sex = "Male";
+                    cont = true;
+//                    UserInfo.sex = "Male";
+                } else {
+                    Log.e("asd", "m empty");
+                    runEditProfile();
+
+                    runAfterCheck();
+
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+        return cont;
+    }
+
+    private void runEditProfile() {
+        if (!MDataExist && !FDataExist) {
+            startActivity(new Intent(getActivity().getApplicationContext(), EditProfile.class));
+        }
+    }
+
+
+    private void setProgressDefault() {
         ratingSeekBar.setProgress(5);
     }
 

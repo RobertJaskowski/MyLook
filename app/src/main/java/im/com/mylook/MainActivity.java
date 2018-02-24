@@ -10,119 +10,161 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+
 public class MainActivity extends AppCompatActivity {
 
 
-    Fragment mFragment;
+    private Fragment mFragment;
 
 
-    private FirebaseAuth mAuth;
-    private FirebaseDatabase mDatabase;
+    private static FirebaseAuth mAuth;
+    private static FirebaseDatabase mDatabase;
 
+    private ProgressBar progressBar;
 
-    boolean FDataExist = false;
-    boolean MDataExist = false;
+    Observable<Boolean> observable;
 
-
-    static String sex;
-
+    Observer<Boolean> observer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (savedInstanceState != null) {
-            mFragment = getFragmentManager().getFragment(savedInstanceState, "fragment");
-            switchFragment(mFragment);
-        } else {
-            switchFragment(new HomeFragment());
+        mAuth = FirebaseAuth.getInstance();
+
+        if (mAuth.getCurrentUser() == null) {
+            finish();
         }
 
+        progressBar = findViewById(R.id.progress_switchFragment);
 
-        mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance();
+        progressBar.setVisibility(View.VISIBLE);
+
+        setRxFragment();
 
 
+//        if (!SexChecking.sexChecked) {
+//            AccessSex();
+//        }else {
+//            subscribeRx();
+//            Log.e("subRx","subRx");
+//        }
+
+
+//        while (!SexChecking.checkState()) {
+//            Log.e("mainactivity", "checking " + SexChecking.getLicz());
+//
+//        }
+
+        if (!SexChecking.sexChecked) {
+            AccessSex();
+        } else {
+            if (savedInstanceState != null) {
+                mFragment = getFragmentManager().getFragment(savedInstanceState, "fragment");
+                switchFragment(mFragment);
+            } else {
+                switchFragment(new HomeFragment());
+            }
+        }
+
+        setNavigation();
+
+    }
+
+    void subscribeRx() {
+        observable.subscribe(observer);
+    }
+
+    private void setRxFragment() {
+        observer = new Observer<Boolean>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+//                SexChecking.checkSex();
+            }
+
+            @Override
+            public void onNext(Boolean aBoolean) {
+                Log.e("asssd", "asdssNEXT");
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+                switchFragment(new HomeFragment());
+                progressBar.setVisibility(View.GONE);
+
+                Log.e("onComplete", "observer");
+
+            }
+        };
+
+        observable = Observable.empty();
+    }
+
+    private void AccessSex() {
+        SexChecking sexChecking = new SexChecking();
+
+        sexChecking.checkSex(new OnGetDataListener() {
+            @Override
+            public void onSuccess(DataSnapshot dataSnapshot) {
+                subscribeRx();
+                Log.e("accessSex", "success");
+            }
+
+            @Override
+            public void onStart() {
+
+            }
+
+            @Override
+            public void onFailure() {
+
+            }
+
+            @Override
+            public void onEmpty() {
+                if (SexChecking.Fchecked && SexChecking.Mchecked) {
+                    if (!SexChecking.MDataExist && !SexChecking.FDataExist) {
+
+                        startActivity(new Intent(getApplicationContext(), EditProfile.class));
+
+                        Log.e("start", "editprofile");
+                    }
+                }
+            }
+        });
+    }
+
+    private void setNavigation() {
         BottomNavigationView navigation = findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-
-        dataExistCheck();
-    }
-
-    private void dataExistCheck() {
-        DatabaseReference Fref = mDatabase.getReference().child("Users").child("Female").child(mAuth.getCurrentUser().getUid());
-        DatabaseReference Mref = mDatabase.getReference().child("Users").child("Male").child(mAuth.getCurrentUser().getUid());
-
-
-
-        Fref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChild("UserInfo")) {
-                    Log.e("asd", "f not empty");
-                    FDataExist = true;
-                    sex = "Female";
-//                    UserInfo.sex = "Female";
-
-                } else {
-                    Log.e("asd", "f empty");
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        Mref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChild("UserInfo")) {
-                    Log.e("asd", "m not empty");
-                    MDataExist = true;
-                    sex= "Male";
-//                    UserInfo.sex = "Male";
-                } else {
-                    Log.e("asd", "m empty");
-                    runEditProfile();
-
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-
-
-
-    }
-
-    private void runEditProfile(){
-        if (!MDataExist && !FDataExist){
-            startActivity(new Intent(MainActivity.this, EditProfile.class));
-        }
     }
 
 
     private void switchFragment(Fragment fragment) {
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         mFragment = fragment;
-        fragmentTransaction.replace(R.id.frame_container, mFragment);
+        fragmentTransaction.replace(R.id.frame_container, mFragment, "tag");
         fragmentTransaction.commit();
     }
 
@@ -131,8 +173,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-
-        getFragmentManager().putFragment(outState, "fragment", mFragment);
+        if (getFragmentManager().findFragmentByTag("tag") != null) {
+            getFragmentManager().putFragment(outState, "fragment", mFragment);
+        }
 
 //        outState.putBundle("fragment",bundle);
 
@@ -178,4 +221,5 @@ public class MainActivity extends AppCompatActivity {
 
         return true;
     }
+
 }
